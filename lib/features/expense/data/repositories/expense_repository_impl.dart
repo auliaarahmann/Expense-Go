@@ -1,3 +1,5 @@
+// lib/features/expense/data/repositories/expense_repository_impl.dart
+
 import 'package:expensego/core/network/network_info.dart';
 import 'package:expensego/features/expense/data/datasources/expense_local_data_source.dart';
 import 'package:expensego/features/expense/data/datasources/expense_remote_data_source.dart';
@@ -17,15 +19,6 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   });
 
   @override
-  Future<void> addExpense(ExpenseEntity expense) async {
-    final model = ExpenseModel.fromEntity(expense);
-    if (await networkInfo.isConnected) {
-      await remoteDataSource.addExpense(model);
-    }
-    await localDataSource.addExpense(model);
-  }
-
-  @override
   Stream<List<ExpenseEntity>> getAllExpenses() async* {
     if (await networkInfo.isConnected) {
       yield* remoteDataSource.getAllExpenses().asyncMap((remoteList) async {
@@ -42,7 +35,28 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   }
 
   @override
+  Future<void> addExpense(ExpenseEntity expense) async {
+    final model = ExpenseModel.fromEntity(expense);
+    if (await networkInfo.isConnected) {
+      await remoteDataSource.addExpense(model);
+    }
+    await localDataSource.addExpense(model);
+  }
+
+  @override
+  Future<void> updateExpense(ExpenseEntity expense) async {
+    final model = ExpenseModel.fromEntity(expense);
+    if (await networkInfo.isConnected) {
+      await remoteDataSource.updateExpense(model);
+    }
+    await localDataSource.updateExpense(model);
+  }
+
+  @override
   Future<void> deleteExpense(String id) async {
-    // TODO: Tambahkan logika hapus data ke remote & local
+    if (await networkInfo.isConnected) {
+      await remoteDataSource.deleteExpense(id);
+    }
+    await localDataSource.deleteExpense(id);
   }
 }

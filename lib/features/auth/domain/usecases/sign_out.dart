@@ -1,7 +1,7 @@
 // lib/features/auth/domain/usecases/sign_out.dart
 import 'package:fpdart/fpdart.dart';
-import '../../../../core/errors/failures.dart';
-import '../repositories/auth_repository.dart';
+import 'package:expensego/core/errors/failures.dart';
+import 'package:expensego/features/auth/domain/repositories/auth_repository.dart';
 
 class SignOut {
   final AuthRepository repository;

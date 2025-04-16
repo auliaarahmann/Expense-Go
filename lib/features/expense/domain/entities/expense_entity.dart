@@ -1,3 +1,5 @@
+// lib/features/expense/domain/entities/expense_entity.dart
+
 class ExpenseEntity {
   final String id;
   final String title;

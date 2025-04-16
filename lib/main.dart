@@ -1,4 +1,5 @@
 import 'package:expensego/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:expensego/features/profile/presentation/blocs/profile_bloc.dart';
 
 import 'injection_container.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +36,7 @@ class MyApp extends StatelessWidget {
           create: (_) => sl<AuthBloc>()..add(AuthCheckRequested()),
         ),
         BlocProvider<ExpenseBloc>(create: (_) => sl<ExpenseBloc>()),
+        BlocProvider<ProfileBloc>(create: (_) => sl<ProfileBloc>()),
       ],
       child: MaterialApp(
         title: 'Expense GO',

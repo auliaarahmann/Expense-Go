@@ -2,9 +2,55 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:expensego/features/auth/domain/entities/user_entity.dart';
 import 'package:expensego/features/auth/presentation/blocs/auth_bloc.dart';
+import 'package:expensego/features/profile/domain/entities/profile_entity.dart';
+import 'package:expensego/features/profile/presentation/blocs/profile_bloc.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _nameController;
+  late TextEditingController _currentPasswordController;
+  late TextEditingController _newPasswordController;
+  late TextEditingController _confirmPasswordController;
+
+  bool _isCurrentPasswordVisible = false;
+  bool _isNewPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+  bool _isControllerInitialized = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _currentPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  void _initializeControllers(UserEntity user) {
+    _nameController = TextEditingController(text: user.name);
+    _currentPasswordController = TextEditingController();
+    _newPasswordController = TextEditingController();
+    _confirmPasswordController = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isControllerInitialized) {
+      final authState = context.read<AuthBloc>().state;
+      if (authState is Authenticated) {
+        _initializeControllers(authState.user);
+        _isControllerInitialized = true;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,12 +61,35 @@ class ProfilePage extends StatelessWidget {
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
       ),
-      body: BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, state) {
-          if (state is Authenticated) {
-            return _buildProfileContent(context, state.user);
+      body: BlocConsumer<ProfileBloc, ProfileState>(
+        listener: (context, profileState) {
+          if (profileState is ProfileUpdated) {
+            context.read<AuthBloc>().add(RefreshUserRequested());
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Profil berhasil diperbarui!'),
+                duration: Duration(seconds: 2),
+                backgroundColor: Colors.green,
+              ),
+            );
+          } else if (profileState is ProfileError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(profileState.message),
+                backgroundColor: Colors.red,
+              ),
+            );
           }
-          return const Center(child: CircularProgressIndicator());
+        },
+        builder: (context, profileState) {
+          return BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, authState) {
+              if (authState is Authenticated && _isControllerInitialized) {
+                return _buildProfileContent(context, authState.user);
+              }
+              return const Center(child: CircularProgressIndicator());
+            },
+          );
         },
       ),
     );
@@ -30,127 +99,77 @@ class ProfilePage extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // Header Section
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: Colors.indigo,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(60),
-                bottomRight: Radius.circular(60),
-              ),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 10,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.white,
-                      backgroundImage:
-                          user.photoUrl != null
-                              ? NetworkImage(user.photoUrl!)
-                              : null,
-                      child:
-                          user.photoUrl == null
-                              ? Icon(
-                                Icons.person,
-                                size: 50,
-                                color: Colors.indigo,
-                              )
-                              : null,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    user.name ?? 'Update your name.',
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    user.email ?? 'No Email',
-                    style: TextStyle(color: Colors.white.withOpacity(0.8)),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Info Section
+          _buildHeader(user),
           Padding(
             padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  _buildTextField(_nameController, 'Nama Lengkap', Icons.person),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    _currentPasswordController,
+                    'Password Saat Ini',
+                    Icons.lock,
+                    obscureText: !_isCurrentPasswordVisible,
+                    isOptional: true,
+                    onToggleVisibility: () {
+                      setState(() {
+                        _isCurrentPasswordVisible = !_isCurrentPasswordVisible;
+                      });
+                    },
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        _buildInfoRow(
-                          icon: Icons.fingerprint,
-                          label: 'User ID',
-                          value: user.uid,
-                          context: context,
-                        ),
-                        if (user.createdAt != null)
-                          _buildInfoRow(
-                            icon: Icons.calendar_today,
-                            label: 'Registered Since',
-                            value:
-                                '${user.createdAt!.day}/${user.createdAt!.month}/${user.createdAt!.year}',
-                            context: context,
-                          ),
-                        _buildInfoRow(
-                          icon: Icons.email,
-                          label: 'Email',
-                          value: user.email ?? 'No Email',
-                          context: context,
-                        ),
-                      ],
-                    ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    _newPasswordController,
+                    'Password Baru',
+                    Icons.lock,
+                    obscureText: !_isNewPasswordVisible,
+                    isOptional: true,
+                    onToggleVisibility: () {
+                      setState(() {
+                        _isNewPasswordVisible = !_isNewPasswordVisible;
+                      });
+                    },
                   ),
-                ),
-
-                const SizedBox(height: 30),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.logout, color: Colors.white),
-                    label: const Text(
-                      'Sign Out',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: const Color.fromARGB(255, 167, 13, 2),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    _confirmPasswordController,
+                    'Konfirmasi Password Baru',
+                    Icons.lock,
+                    obscureText: !_isConfirmPasswordVisible,
+                    isOptional: true,
+                    onToggleVisibility: () {
+                      setState(() {
+                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 30),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.save, color: Colors.white),
+                      label: const Text(
+                        'Update Profile',
+                        style: TextStyle(fontSize: 16),
                       ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigo,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: _handleSubmit,
                     ),
-                    onPressed: () => _showLogoutConfirmation(context),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 20),
+                  _buildLogoutButton(context),
+                ],
+              ),
             ),
           ),
         ],
@@ -158,38 +177,146 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow({
-    required IconData icon,
-    required String label,
-    required String value,
-    required BuildContext context,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          Icon(icon, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+  void _handleSubmit() {
+    if (_formKey.currentState!.validate()) {
+      final currentPassword = _currentPasswordController.text.trim();
+      final newPassword = _newPasswordController.text.trim();
+      final confirmPassword = _confirmPasswordController.text.trim();
+
+      if (newPassword.isNotEmpty) {
+        if (currentPassword.isEmpty) {
+          _showError('Masukkan password saat ini untuk mengganti password.');
+          return;
+        }
+
+        if (newPassword != confirmPassword) {
+          _showError('Password baru dan konfirmasi tidak cocok.');
+          return;
+        }
+      }
+
+      final user = context.read<AuthBloc>().state is Authenticated
+          ? (context.read<AuthBloc>().state as Authenticated).user
+          : null;
+
+      if (user == null) {
+        _showError('User tidak ditemukan.');
+        return;
+      }
+
+      final updatedProfile = ProfileEntity(
+        uid: user.uid,
+        name: _nameController.text.trim(),
+      );
+
+      context.read<ProfileBloc>().add(
+            UpdateProfileRequested(
+              updatedProfile,
+              currentPassword: currentPassword.isNotEmpty ? currentPassword : null,
+              newPassword: newPassword.isNotEmpty ? newPassword : null,
             ),
+          );
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  Widget _buildHeader(UserEntity user) {
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+        color: Colors.indigo,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(60),
+          bottomRight: Radius.circular(60),
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 50,
+              backgroundColor: Colors.white,
+              backgroundImage:
+                  user.photoUrl != null ? NetworkImage(user.photoUrl!) : null,
+              child: user.photoUrl == null
+                  ? const Icon(Icons.person, size: 50, color: Colors.indigo)
+                  : null,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              user.name ?? 'Update your name',
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            Text(
+              user.email ?? 'No Email',
+              style: const TextStyle(color: Colors.white70),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label,
+    IconData icon, {
+    bool obscureText = false,
+    TextInputType keyboardType = TextInputType.text,
+    bool isOptional = false,
+    VoidCallback? onToggleVisibility,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        suffixIcon: onToggleVisibility != null
+            ? IconButton(
+                icon: Icon(
+                  obscureText ? Icons.visibility_off : Icons.visibility,
+                ),
+                onPressed: onToggleVisibility,
+              )
+            : null,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      validator: (value) {
+        if (!isOptional && (value == null || value.trim().isEmpty)) {
+          return '$label tidak boleh kosong';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildLogoutButton(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        icon: const Icon(Icons.logout, color: Colors.white),
+        label: const Text('Log Out', style: TextStyle(fontSize: 16)),
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.white,
+          backgroundColor: const Color.fromARGB(255, 167, 13, 2),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-        ],
+        ),
+        onPressed: () => _showLogoutConfirmation(context),
       ),
     );
   }
@@ -199,35 +326,29 @@ class ProfilePage extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Confirm Logout'),
-          content: const Text('Are you sure you want to log out?'),
+          title: const Text('Konfirmasi Logout'),
+          content: const Text('Apakah Anda yakin ingin logout?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
+              child: const Text('Batal'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.pop(dialogContext); // Close dialog
+                Navigator.pop(dialogContext);
                 context.read<AuthBloc>().add(SignOutRequested());
-                // Show success snackbar
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: const Text(
-                      'Anda telah logout!',
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    content: const Text('Anda telah logout!'),
                     backgroundColor: Colors.green,
-                    behavior: SnackBarBehavior.floating,
-                    margin: const EdgeInsets.all(16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    duration: const Duration(seconds: 3),
+                    duration: const Duration(seconds: 2),
                   ),
                 );
               },
-              child: const Text('Log Out', style: TextStyle(color: Colors.red)),
+              child: const Text(
+                'Ya, Logout',
+                style: TextStyle(color: Colors.red),
+              ),
             ),
           ],
         );

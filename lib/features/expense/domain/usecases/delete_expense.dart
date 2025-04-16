@@ -1,3 +1,5 @@
+// lib/features/expense/domain/usecases/delete_expense.dart
+
 import 'package:expensego/features/expense/domain/repositories/expense_repository.dart';
 
 class DeleteExpense {

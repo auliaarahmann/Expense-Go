@@ -13,6 +13,8 @@ abstract class AuthService {
     required String password,
   });
 
+  Future<void> reloadCurrentUser(); // Reloading current user data
+
   Future<void> signOut();
   Stream<User?> get authStateChanges;
   User? get currentUser;
@@ -54,6 +56,11 @@ class FirebaseAuthService implements AuthService {
     } on FirebaseAuthException catch (e) {
       throw AuthException(e.message ?? 'Registration failed');
     }
+  }
+
+  @override
+  Future<void> reloadCurrentUser() async {
+    await _firebaseAuth.currentUser?.reload();
   }
 
   @override

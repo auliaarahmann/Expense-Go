@@ -1,14 +1,14 @@
-// lib/features/expense/domain/usecases/get_expenses.dart
+// lib/features/expense/domain/usecases/add_expense.dart
 
 import 'package:expensego/features/expense/domain/entities/expense_entity.dart';
 import 'package:expensego/features/expense/domain/repositories/expense_repository.dart';
 
-class GetExpenses {
+class UpdateExpense {
   final ExpenseRepository repository;
 
-  GetExpenses(this.repository);
+  UpdateExpense(this.repository);
 
-  Stream<List<ExpenseEntity>> call() {
-    return repository.getAllExpenses();
+  Future<void> call(ExpenseEntity expense) {
+    return repository.updateExpense(expense);
   }
 }

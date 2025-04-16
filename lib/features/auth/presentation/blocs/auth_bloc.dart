@@ -2,12 +2,13 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/errors/failures.dart';
-import '../../domain/usecases/get_current_user.dart';
-import '../../domain/usecases/sign_in.dart';
-import '../../domain/usecases/sign_out.dart';
-import '../../domain/usecases/sign_up.dart';
-import '../../domain/entities/user_entity.dart';
+import 'package:expensego/core/errors/failures.dart';
+import 'package:expensego/core/services/auth_service.dart';
+import 'package:expensego/features/auth/domain/usecases/get_current_user.dart';
+import 'package:expensego/features/auth/domain/usecases/sign_in.dart';
+import 'package:expensego/features/auth/domain/usecases/sign_out.dart';
+import 'package:expensego/features/auth/domain/usecases/sign_up.dart';
+import 'package:expensego/features/auth/domain/entities/user_entity.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
@@ -17,17 +18,38 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SignUp signUp;
   final SignOut signOut;
   final GetCurrentUser getCurrentUser;
+  final AuthService authService;
 
   AuthBloc({
     required this.signIn,
     required this.signUp,
     required this.signOut,
     required this.getCurrentUser,
+    required this.authService,
   }) : super(AuthInitial()) {
     on<AuthCheckRequested>(_onAuthCheckRequested);
+    on<RefreshUserRequested>(_onRefreshUserRequested);
     on<SignInRequested>(_onSignInRequested);
     on<SignUpRequested>(_onSignUpRequested);
     on<SignOutRequested>(_onSignOutRequested);
+  }
+
+  void _onRefreshUserRequested(
+    RefreshUserRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    try {
+      await authService.reloadCurrentUser();
+      final refreshedUser = getCurrentUser();
+
+      if (refreshedUser != null) {
+        emit(Authenticated(user: refreshedUser));
+      } else {
+        emit(Unauthenticated());
+      }
+    } catch (e) {
+      emit(AuthError(message: 'Gagal menyegarkan data pengguna.'));
+    }
   }
 
   void _onAuthCheckRequested(
@@ -82,17 +104,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   String _mapFailureToMessage(Failure failure) {
-    switch (failure.runtimeType) {
-      case ServerFailure _:
-        return 'Server error occurred';
-      case InvalidCredentialsFailure _:
-        return 'Invalid email or password';
-      case EmailAlreadyInUseFailure _:
-        return 'Email already in use';
-      case WeakPasswordFailure _:
-        return 'Password is too weak';
-      default:
-        return 'An unexpected error occurred';
+    final message = failure.message.toLowerCase();
+
+    if (message.contains('auth credential is incorrect')) {
+      return 'Login gagal! kredensial salah.';
+    } else if (message.contains('is already in use')) {
+      return 'Registrasi gagal! Email sudah digunakan.';
+    } else if (message.contains(
+      'We have blocked all requests from this device',
+    )) {
+      return 'Terlalu banyak percobaan login. Coba lagi nanti.';
     }
+    // fallback
+    return failure.message;
   }
 }

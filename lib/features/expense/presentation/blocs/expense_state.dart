@@ -1,3 +1,5 @@
+// lib/features/expense/presentation/blocs/expense_state.dart
+
 import 'package:expensego/features/expense/domain/entities/expense_entity.dart';
 
 abstract class ExpenseState {}

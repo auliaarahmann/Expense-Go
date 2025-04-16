@@ -1,3 +1,5 @@
+// lib/injection_container.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expensego/core/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -5,6 +7,8 @@ import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:expensego/core/network/network_info.dart';
+
+//Auth feature
 import 'package:expensego/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:expensego/features/auth/data/datasources/auth_remote_data_source_impl.dart';
 import 'package:expensego/features/auth/data/repositories/auth_repository_impl.dart';
@@ -14,6 +18,16 @@ import 'package:expensego/features/auth/domain/usecases/sign_in.dart';
 import 'package:expensego/features/auth/domain/usecases/sign_out.dart';
 import 'package:expensego/features/auth/domain/usecases/sign_up.dart';
 import 'package:expensego/features/auth/presentation/blocs/auth_bloc.dart';
+
+//Profile feature
+import 'package:expensego/features/profile/data/datasources/profile_remote_data_source.dart';
+import 'package:expensego/features/profile/data/datasources/profile_remote_data_source_impl.dart';
+import 'package:expensego/features/profile/data/repositories/profile_repository_impl.dart';
+import 'package:expensego/features/profile/domain/repositories/profile_repository.dart';
+import 'package:expensego/features/profile/domain/usecases/update_profile.dart';
+import 'package:expensego/features/profile/presentation/blocs/profile_bloc.dart';
+
+//Expense feature
 import 'package:expensego/features/expense/data/datasources/expense_local_data_source.dart';
 import 'package:expensego/features/expense/data/datasources/expense_local_data_source_impl.dart';
 import 'package:expensego/features/expense/data/datasources/expense_remote_data_source.dart';
@@ -21,6 +35,8 @@ import 'package:expensego/features/expense/data/datasources/expense_remote_data_
 import 'package:expensego/features/expense/data/repositories/expense_repository_impl.dart';
 import 'package:expensego/features/expense/domain/repositories/expense_repository.dart';
 import 'package:expensego/features/expense/domain/usecases/add_expense.dart';
+import 'package:expensego/features/expense/domain/usecases/update_expense.dart';
+import 'package:expensego/features/expense/domain/usecases/delete_expense.dart';
 import 'package:expensego/features/expense/domain/usecases/get_expenses.dart';
 import 'package:expensego/features/expense/presentation/blocs/expense_bloc.dart';
 
@@ -46,7 +62,7 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
 
-  // ===== AUTH FEATURE =====
+  // ===================== AUTH FEATURE ========================
   // Data Sources
   sl.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(sl<AuthService>()),
@@ -70,21 +86,21 @@ Future<void> init() async {
       signUp: sl<SignUp>(),
       signOut: sl<SignOut>(),
       getCurrentUser: sl<GetCurrentUser>(),
+      authService: sl(),
     ),
   );
 
-  // ===== EXPENSE FEATURE =====
+  // ======================== EXPENSE FEATURE ========================
+  // Data Source
   sl.registerLazySingleton<ExpenseRemoteDataSource>(
-    () => ExpenseRemoteDataSourceImpl(
-      firestore: sl(),
-      auth: sl(), // tambahkan ini
-    ),
+    () => ExpenseRemoteDataSourceImpl(firestore: sl(), auth: sl()),
   );
 
   sl.registerLazySingleton<ExpenseLocalDataSource>(
     () => ExpenseLocalDataSourceImpl(sl()),
   );
 
+  // Repository
   sl.registerLazySingleton<ExpenseRepository>(
     () => ExpenseRepositoryImpl(
       remoteDataSource: sl(),
@@ -93,8 +109,36 @@ Future<void> init() async {
     ),
   );
 
+  // Usecase
   sl.registerLazySingleton(() => AddExpense(sl()));
+  sl.registerLazySingleton(() => UpdateExpense(sl()));
+  sl.registerLazySingleton(() => DeleteExpense(sl()));
   sl.registerLazySingleton(() => GetExpenses(sl()));
 
-  sl.registerFactory(() => ExpenseBloc(addExpense: sl(), getExpenses: sl()));
+  // Bloc
+  sl.registerFactory(
+    () => ExpenseBloc(
+      addExpense: sl(),
+      updateExpense: sl(),
+      deleteExpense: sl(),
+      getExpenses: sl(),
+    ),
+  );
+
+  // ========================  PROFILE PAGE FEATURE ========================
+  // Data Source
+  sl.registerLazySingleton<ProfileRemoteDataSource>(
+    () => ProfileRemoteDataSourceImpl(sl(), sl()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(sl()),
+  );
+
+  // UseCase
+  sl.registerLazySingleton(() => UpdateProfile(sl()));
+
+  // Bloc
+  sl.registerFactory(() => ProfileBloc(updateProfile: sl()));
 }

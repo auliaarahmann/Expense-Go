@@ -2,11 +2,11 @@
 import 'dart:math';
 
 import 'package:fpdart/fpdart.dart';
-import '../../../../core/errors/failures.dart';
-import '../../../../core/errors/exceptions.dart';
-import '../../domain/entities/user_entity.dart';
-import '../../domain/repositories/auth_repository.dart';
-import '../datasources/auth_remote_data_source.dart';
+import 'package:expensego/core/errors/failures.dart';
+import 'package:expensego/core/errors/exceptions.dart';
+import 'package:expensego/features/auth/domain/entities/user_entity.dart';
+import 'package:expensego/features/auth/domain/repositories/auth_repository.dart';
+import 'package:expensego/features/auth/data/datasources/auth_remote_data_source.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;

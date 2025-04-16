@@ -1,3 +1,5 @@
+// lib/features/expense/data/datasources/expense_remote_data_source_impl.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:expensego/features/expense/data/datasources/expense_remote_data_source.dart';
@@ -15,6 +17,19 @@ class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
         .collection('expenses')
         .doc(expense.id)
         .set(expense.toJson());
+  }
+
+  @override
+  Future<void> updateExpense(ExpenseModel expense) async {
+    await firestore
+        .collection('expenses')
+        .doc(expense.id)
+        .update(expense.toJson());
+  }
+
+  @override
+  Future<void> deleteExpense(String id) async {
+    await firestore.collection('expenses').doc(id).delete();
   }
 
   @override
