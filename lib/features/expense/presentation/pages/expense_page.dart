@@ -238,6 +238,7 @@ class ExpensePage extends StatelessWidget {
     );
 
     if (confirm == true) {
+      // ignore: use_build_context_synchronously
       context.read<ExpenseBloc>().add(DeleteExpenseRequested(expense));
     }
   }
@@ -246,7 +247,7 @@ class ExpensePage extends StatelessWidget {
     BuildContext context, {
     ExpenseEntity? expense,
   }) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
 
     final titleController = TextEditingController(text: expense?.title ?? '');
     final amountController = TextEditingController(
@@ -271,7 +272,7 @@ class ExpensePage extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Form(
-                    key: _formKey,
+                    key: formKey,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,7 +368,7 @@ class ExpensePage extends StatelessWidget {
                                 return;
                               }
 
-                              if (!_formKey.currentState!.validate()) {
+                              if (!formKey.currentState!.validate()) {
                                 // jika form tidak valid, hentikan proses
                                 return;
                               }

@@ -132,13 +132,18 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Login Button with BlocBuilder
+                  // Login Button with BlocConsumer
                   SizedBox(
                     width: double.infinity,
                     child: BlocConsumer<AuthBloc, AuthState>(
                       listener: (context, state) {
                         if (state is Authenticated) {
-                          Navigator.pushReplacementNamed(context, '/dashboard');
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            Navigator.pushReplacementNamed(
+                              context,
+                              '/dashboard',
+                            );
+                          });
                         }
                         if (state is AuthError) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -195,7 +200,7 @@ class _LoginPageState extends State<LoginPage> {
                             PageRouteBuilder(
                               pageBuilder:
                                   (context, animation, secondaryAnimation) =>
-                                      RegisterPage(),
+                                      const RegisterPage(),
                               transitionsBuilder: (
                                 context,
                                 animation,
