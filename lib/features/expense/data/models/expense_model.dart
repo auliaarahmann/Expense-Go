@@ -1,5 +1,7 @@
 // lib/features/expense/data/models/expense_model.dart
 
+// ignore_for_file: overridden_fields
+
 import 'package:expensego/features/expense/domain/entities/expense_entity.dart';
 import 'package:hive/hive.dart';
 

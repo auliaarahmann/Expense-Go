@@ -2,6 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expensego/core/services/auth_service.dart';
+import 'package:expensego/features/profile/domain/usecases/delete_account.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -25,6 +26,7 @@ import 'package:expensego/features/profile/data/datasources/profile_remote_data_
 import 'package:expensego/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:expensego/features/profile/domain/repositories/profile_repository.dart';
 import 'package:expensego/features/profile/domain/usecases/update_profile.dart';
+import 'package:expensego/features/profile/domain/usecases/change_password.dart';
 import 'package:expensego/features/profile/presentation/blocs/profile_bloc.dart';
 
 //Expense feature
@@ -133,12 +135,16 @@ Future<void> init() async {
 
   // Repository
   sl.registerLazySingleton<ProfileRepository>(
-    () => ProfileRepositoryImpl(sl()),
+    () => ProfileRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
   );
 
   // UseCase
   sl.registerLazySingleton(() => UpdateProfile(sl()));
+  sl.registerLazySingleton(() => ChangePassword(sl()));
+  sl.registerLazySingleton(() => DeleteAccount(sl()));
 
   // Bloc
-  sl.registerFactory(() => ProfileBloc(updateProfile: sl()));
+  sl.registerFactory(
+    () => ProfileBloc(updateProfile: sl(), changePassword: sl(), deleteAccount: sl()),
+  );
 }

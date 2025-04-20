@@ -182,7 +182,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     width: double.infinity,
                     child: BlocConsumer<AuthBloc, AuthState>(
                       listener: (context, state) {
-                        if (state is Authenticated) {
+                        if (state is SignUpSuccess) {
                           // Langsung logout agar tidak auto-login
                           context.read<AuthBloc>().add(SignOutRequested());
 
@@ -202,7 +202,9 @@ class _RegisterPageState extends State<RegisterPage> {
                               duration: const Duration(seconds: 3),
                             ),
                           );
-                          Navigator.pushReplacementNamed(context, '/login');
+                          Navigator.of(
+                            context,
+                          ).pushNamedAndRemoveUntil('/login', (route) => false);
                         }
                         if (state is AuthError) {
                           ScaffoldMessenger.of(context).showSnackBar(

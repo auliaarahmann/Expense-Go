@@ -86,7 +86,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     result.fold(
       (failure) => emit(AuthError(message: _mapFailureToMessage(failure))),
-      (user) => emit(Authenticated(user: user)),
+      (user) => emit(SignUpSuccess()),
     );
   }
 
@@ -99,7 +99,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     result.fold(
       (failure) => emit(AuthError(message: _mapFailureToMessage(failure))),
-      (_) => emit(Unauthenticated()),
+      (user) => emit(SignOutSuccessfully()),
     );
   }
 
