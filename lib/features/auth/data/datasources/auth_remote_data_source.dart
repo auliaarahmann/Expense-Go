@@ -12,6 +12,8 @@ abstract class AuthRemoteDataSource {
     required String password,
   });
 
+  Future<UserCredential> signInWithGoogle();
+
   Future<void> signOut();
   Stream<User?> get authStateChanges;
   User? get currentUser;

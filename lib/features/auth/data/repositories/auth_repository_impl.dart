@@ -53,6 +53,18 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, UserEntity>> signInWithGoogle() async {
+    try {
+      final userCredential = await remoteDataSource.signInWithGoogle();
+      return Right(UserEntity.fromFirebaseUser(userCredential.user!));
+    } on AuthException catch (e) {
+      return Left(GoogleSignInFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, UserEntity>> getCurrentUserData() async {
     try {
       final userCredential = remoteDataSource.currentUser;

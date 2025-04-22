@@ -18,6 +18,10 @@ class NetworkFailure extends Failure {
   const NetworkFailure(super.message);
 }
 
+class GoogleSignInFailure extends Failure {
+  const GoogleSignInFailure(super.message);
+}
+
 class InvalidCredentialsFailure extends Failure {
   const InvalidCredentialsFailure(super.message);
 }

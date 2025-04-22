@@ -6,6 +6,7 @@ import 'package:expensego/core/errors/failures.dart';
 import 'package:expensego/core/services/auth_service.dart';
 import 'package:expensego/features/auth/domain/usecases/get_current_user.dart';
 import 'package:expensego/features/auth/domain/usecases/sign_in.dart';
+import 'package:expensego/features/auth/domain/usecases/sign_in_with_google.dart';
 import 'package:expensego/features/auth/domain/usecases/sign_out.dart';
 import 'package:expensego/features/auth/domain/usecases/sign_up.dart';
 import 'package:expensego/features/auth/domain/entities/user_entity.dart';
@@ -17,6 +18,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SignIn signIn;
   final SignUp signUp;
   final SignOut signOut;
+  final SignInWithGoogle signInWithGoogle;
   final GetCurrentUser getCurrentUser;
   final AuthService authService;
 
@@ -24,6 +26,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.signIn,
     required this.signUp,
     required this.signOut,
+    required this.signInWithGoogle,
     required this.getCurrentUser,
     required this.authService,
   }) : super(AuthInitial()) {
@@ -31,6 +34,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<RefreshUserRequested>(_onRefreshUserRequested);
     on<SignInRequested>(_onSignInRequested);
     on<SignUpRequested>(_onSignUpRequested);
+    on<SignInWithGoogleRequested>(_onSignInWithGoogleRequested);
     on<SignOutRequested>(_onSignOutRequested);
   }
 
@@ -87,6 +91,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     result.fold(
       (failure) => emit(AuthError(message: _mapFailureToMessage(failure))),
       (user) => emit(SignUpSuccess()),
+    );
+  }
+
+  void _onSignInWithGoogleRequested(
+    SignInWithGoogleRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    final result = await signInWithGoogle();
+
+    result.fold(
+      (failure) => emit(AuthError(message: _mapFailureToMessage(failure))),
+      (user) => emit(Authenticated(user: user)),
     );
   }
 

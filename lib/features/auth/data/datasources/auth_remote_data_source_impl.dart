@@ -1,7 +1,8 @@
 // lib/features/auth/data/datasources/auth_remote_data_source_impl.dart
+
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../../../core/services/auth_service.dart';
-import '../datasources/auth_remote_data_source.dart';
+import 'package:expensego/core/services/auth_service.dart';
+import 'package:expensego/features/auth/data/datasources/auth_remote_data_source.dart';
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final AuthService _authService;
@@ -28,6 +29,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       email: email,
       password: password,
     );
+  }
+
+  @override
+  Future<UserCredential> signInWithGoogle() async {
+    return await _authService.signInWithGoogle();
   }
 
   @override

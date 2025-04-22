@@ -235,6 +235,45 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Atau :',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  // Google Sign-In Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      icon: Image.asset(
+                        'assets/images/android_neutral_rd_na@1x.png',
+                        height: 24,
+                        width: 24,
+                      ),
+                      label: const Text(
+                        'Continue with Google',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: const BorderSide(color: Colors.white70),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      onPressed: () {
+                        context.read<AuthBloc>().add(
+                          SignInWithGoogleRequested(),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),

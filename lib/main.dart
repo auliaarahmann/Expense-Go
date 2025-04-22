@@ -1,15 +1,16 @@
-import 'package:expensego/features/dashboard/presentation/pages/dashboard_page.dart';
-import 'package:expensego/features/profile/presentation/blocs/profile_bloc.dart';
+// lib/main.dart
 
-import 'injection_container.dart';
 import 'package:flutter/material.dart';
+import 'injection_container.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:expensego/features/expense/data/models/expense_model.dart';
-import 'package:expensego/features/auth/presentation/blocs/auth_bloc.dart';
-import 'package:expensego/features/auth/presentation/pages/login_page.dart';
 import 'package:expensego/features/auth/presentation/pages/register_page.dart';
+import 'package:expensego/features/auth/presentation/pages/login_page.dart';
+import 'package:expensego/features/auth/presentation/blocs/auth_bloc.dart';
+import 'package:expensego/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:expensego/features/profile/presentation/blocs/profile_bloc.dart';
+import 'package:expensego/features/expense/data/models/expense_model.dart';
 import 'package:expensego/features/expense/presentation/blocs/expense_bloc.dart';
 
 void main() async {

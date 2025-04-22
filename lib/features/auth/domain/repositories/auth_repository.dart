@@ -1,7 +1,8 @@
 // lib/features/auth/domain/repositories/auth_repository.dart
+
 import 'package:fpdart/fpdart.dart';
 import 'package:expensego/core/errors/failures.dart';
-import '../entities/user_entity.dart';
+import 'package:expensego/features/auth/domain/entities/user_entity.dart';
 
 abstract class AuthRepository {
   Future<Either<Failure, UserEntity>> signInWithEmailAndPassword({
@@ -14,7 +15,10 @@ abstract class AuthRepository {
     required String password,
   });
 
+  Future<Either<Failure, UserEntity>> signInWithGoogle();
+
   Future<Either<Failure, void>> signOut();
+
   Stream<UserEntity?> get authStateChanges;
   UserEntity? get currentUser;
 

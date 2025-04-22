@@ -1,4 +1,5 @@
 // lib/features/auth/domain/usecases/sign_in.dart
+
 import 'package:fpdart/fpdart.dart';
 import 'package:expensego/core/errors/failures.dart';
 import 'package:expensego/features/auth/domain/entities/user_entity.dart';

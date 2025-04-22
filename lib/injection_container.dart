@@ -2,6 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expensego/core/services/auth_service.dart';
+import 'package:expensego/features/auth/domain/usecases/sign_in_with_google.dart';
 import 'package:expensego/features/profile/domain/usecases/delete_account.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
@@ -79,6 +80,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => SignIn(sl<AuthRepository>()));
   sl.registerLazySingleton(() => SignUp(sl<AuthRepository>()));
   sl.registerLazySingleton(() => SignOut(sl<AuthRepository>()));
+  sl.registerLazySingleton(() => SignInWithGoogle(sl<AuthRepository>()));
   sl.registerLazySingleton(() => GetCurrentUser(sl<AuthRepository>()));
 
   // Bloc
@@ -87,6 +89,7 @@ Future<void> init() async {
       signIn: sl<SignIn>(),
       signUp: sl<SignUp>(),
       signOut: sl<SignOut>(),
+      signInWithGoogle: sl<SignInWithGoogle>(),
       getCurrentUser: sl<GetCurrentUser>(),
       authService: sl(),
     ),
@@ -145,6 +148,10 @@ Future<void> init() async {
 
   // Bloc
   sl.registerFactory(
-    () => ProfileBloc(updateProfile: sl(), changePassword: sl(), deleteAccount: sl()),
+    () => ProfileBloc(
+      updateProfile: sl(),
+      changePassword: sl(),
+      deleteAccount: sl(),
+    ),
   );
 }
