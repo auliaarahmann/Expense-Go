@@ -9,3 +9,5 @@ abstract class ExpenseLocalDataSource {
   Future<List<ExpenseModel>> getAllExpenses();
   Future<void> clearAllExpenses();
 }
+
+

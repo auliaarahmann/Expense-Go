@@ -7,7 +7,7 @@ import 'package:hive/hive.dart';
 
 part 'expense_model.g.dart';
 
-@HiveType(typeId: 0)
+@HiveType(typeId: 1)
 class ExpenseModel extends ExpenseEntity {
   @override
   @HiveField(0)

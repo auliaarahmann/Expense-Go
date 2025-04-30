@@ -1,47 +1,53 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'expense_model.dart';
+part of 'trip_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class ExpenseModelAdapter extends TypeAdapter<ExpenseModel> {
+class TripModelAdapter extends TypeAdapter<TripModel> {
   @override
-  final int typeId = 1;
+  final int typeId = 0;
 
   @override
-  ExpenseModel read(BinaryReader reader) {
+  TripModel read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return ExpenseModel(
+    return TripModel(
       id: fields[0] as String,
-      title: fields[1] as String,
-      amount: fields[2] as double,
-      category: fields[3] as String,
-      createdAt: fields[4] as DateTime,
-      userId: fields[5] as String,
+      name: fields[1] as String,
+      budget: fields[2] as double,
+      startDate: fields[3] as DateTime,
+      endDate: fields[4] as DateTime,
+      isFlexible: fields[5] as bool,
+      userId: fields[6] as String,
+      createdAt: fields[7] as DateTime,
     );
   }
 
   @override
-  void write(BinaryWriter writer, ExpenseModel obj) {
+  void write(BinaryWriter writer, TripModel obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.title)
+      ..write(obj.name)
       ..writeByte(2)
-      ..write(obj.amount)
+      ..write(obj.budget)
       ..writeByte(3)
-      ..write(obj.category)
+      ..write(obj.startDate)
       ..writeByte(4)
-      ..write(obj.createdAt)
+      ..write(obj.endDate)
       ..writeByte(5)
-      ..write(obj.userId);
+      ..write(obj.isFlexible)
+      ..writeByte(6)
+      ..write(obj.userId)
+      ..writeByte(7)
+      ..write(obj.createdAt);
   }
 
   @override
@@ -50,7 +56,7 @@ class ExpenseModelAdapter extends TypeAdapter<ExpenseModel> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ExpenseModelAdapter &&
+      other is TripModelAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

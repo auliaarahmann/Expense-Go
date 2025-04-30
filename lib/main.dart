@@ -1,5 +1,6 @@
 // lib/main.dart
 
+import 'package:expensego/features/trip/data/models/trip_model.dart';
 import 'package:flutter/material.dart';
 import 'injection_container.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,15 +13,18 @@ import 'package:expensego/features/dashboard/presentation/pages/dashboard_page.d
 import 'package:expensego/features/profile/presentation/blocs/profile_bloc.dart';
 import 'package:expensego/features/expense/data/models/expense_model.dart';
 import 'package:expensego/features/expense/presentation/blocs/expense_bloc.dart';
+import 'package:expensego/features/trip/presentation/blocs/trip_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
   await Hive.initFlutter();
+  Hive.registerAdapter(TripModelAdapter());
   Hive.registerAdapter(ExpenseModelAdapter());
 
   await init(); // Initialize dependency injection
+
   await sl.allReady(); // Wait for all async dependencies
 
   runApp(const MyApp());
@@ -36,6 +40,7 @@ class MyApp extends StatelessWidget {
         BlocProvider<AuthBloc>(
           create: (_) => sl<AuthBloc>()..add(AuthCheckRequested()),
         ),
+        BlocProvider<TripBloc>(create: (_) => sl<TripBloc>()),
         BlocProvider<ExpenseBloc>(create: (_) => sl<ExpenseBloc>()),
         BlocProvider<ProfileBloc>(create: (_) => sl<ProfileBloc>()),
       ],

@@ -1,4 +1,5 @@
 // lib/features/home/presentation/pages/home_page.dart
+import 'package:expensego/features/trip/presentation/pages/trip_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:expensego/features/home/presentation/pages/home_page.dart';
@@ -19,6 +20,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   final List<Widget> _pages = [
     const HomePage(), // Halaman Home
+    const TripPage(), // Halaman Trip
     const ExpensePage(), // Halaman Transaction (Expense)
     const NotificationPage(), // Halaman Notifikasi
     const ProfilePage(), // Halaman Profile
@@ -44,6 +46,10 @@ class _DashboardPageState extends State<DashboardPage> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.travel_explore),
+            label: 'Trips',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.shopping_bag),
             label: 'Transactions',

@@ -1,73 +1,66 @@
-// lib/features/expense/presentation/pages/expense_page.dart
+// lib/features/trip/presentation/pages/trip_page.dart
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:expensego/features/expense/domain/entities/expense_entity.dart';
-import 'package:expensego/features/expense/presentation/blocs/expense_bloc.dart';
-import 'package:expensego/features/expense/presentation/blocs/expense_event.dart';
-import 'package:expensego/features/expense/presentation/blocs/expense_state.dart';
+import 'package:expensego/features/trip/domain/entities/trip_entity.dart';
+import 'package:expensego/features/trip/presentation/blocs/trip_bloc.dart';
+import 'package:expensego/features/trip/presentation/blocs/trip_event.dart';
+import 'package:expensego/features/trip/presentation/blocs/trip_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+// import 'package:intl/intl.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:intl/intl.dart';
 
-class ExpensePage extends StatelessWidget {
-  const ExpensePage({super.key});
+class TripPage extends StatelessWidget {
+  const TripPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    context.read<ExpenseBloc>().add(LoadExpenses());
+    context.read<TripBloc>().add(LoadTrips());
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transaction History'),
+        title: const Text('My Trips'),
         centerTitle: true,
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: BlocBuilder<ExpenseBloc, ExpenseState>(
+      body: BlocBuilder<TripBloc, TripState>(
         builder: (context, state) {
-          if (state is ExpenseLoading) {
+          if (state is TripLoading) {
             return const Center(child: CircularProgressIndicator());
-          } else if (state is ExpenseLoaded) {
-            if (state.expenses.isEmpty) {
+          } else if (state is TripLoaded) {
+            if (state.trips.isEmpty) {
               return const Center(
-                child: Text(
-                  'Belum ada riwayat.',
-                  style: TextStyle(fontSize: 16),
-                ),
+                child: Text('Belum ada data.', style: TextStyle(fontSize: 16)),
               );
             }
 
             return ListView.builder(
               padding: const EdgeInsets.all(12),
-              itemCount: state.expenses.length,
+              itemCount: state.trips.length,
               itemBuilder: (context, index) {
-                final expense = state.expenses[index];
-                final icon = _getCategoryIcon(expense.category);
-                final isIncome = expense.amount > 0;
-                final amountColor =
-                    isIncome
-                        ? Colors.indigo
-                        : (expense.amount < 0 ? Colors.red : Colors.grey[600]);
+                final trip = state.trips[index];
 
-                final amountPrefix =
-                    isIncome ? '-' : (expense.amount < 0 ? '+' : '');
-
-                final formattedAmount = NumberFormat.currency(
+                final formattedBudget = NumberFormat.currency(
                   locale: 'id_ID',
                   symbol: 'Rp',
                   decimalDigits: 0,
-                ).format(expense.amount.abs());
+                ).format(trip.budget.abs());
 
-                final formattedDate = DateFormat(
+                final formattedstartDate = DateFormat(
                   'dd MMMM - HH:mm',
-                ).format(expense.createdAt.toLocal());
+                ).format(trip.startDate.toLocal());
+
+                final formattedendDate = DateFormat(
+                  'dd MMMM - HH:mm',
+                ).format(trip.endDate.toLocal());
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Slidable(
-                    key: ValueKey(expense.id),
+                    key: ValueKey(trip.id),
 
                     endActionPane: ActionPane(
                       motion: const ScrollMotion(),
@@ -76,17 +69,15 @@ class ExpensePage extends StatelessWidget {
                         const SizedBox(width: 5),
                         SlidableAction(
                           onPressed:
-                              (_) => _showAddExpenseBottomSheet(
-                                context,
-                                expense: expense,
-                              ),
+                              (_) =>
+                                  _showAddTripBottomSheet(context, trip: trip),
                           backgroundColor: Colors.indigo,
                           foregroundColor: Colors.white,
                           icon: Icons.edit,
                           // label: 'Edit',
                         ),
                         SlidableAction(
-                          onPressed: (_) => _showDeleteDialog(context, expense),
+                          onPressed: (_) => _showDeleteDialog(context, trip),
                           icon: Icons.delete,
                           backgroundColor: Colors.red,
                           // label: 'Delete',
@@ -95,31 +86,24 @@ class ExpensePage extends StatelessWidget {
                     ),
 
                     child: GestureDetector(
-                      onTap:
-                          () => _showAddExpenseBottomSheet(
-                            context,
-                            expense: expense,
-                          ),
+                      onTap: () => _showAddTripBottomSheet(context, trip: trip),
                       child: Row(
                         children: [
-                          CircleAvatar(
-                            backgroundColor: Colors.indigo,
-                            child: Icon(icon, color: Colors.white),
-                          ),
+                          CircleAvatar(backgroundColor: Colors.indigo),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  expense.title,
+                                  trip.name,
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w400,
                                   ),
                                 ),
                                 Text(
-                                  formattedDate,
+                                  formattedBudget,
                                   style: const TextStyle(
                                     fontSize: 13,
                                     color: Colors.grey,
@@ -132,15 +116,14 @@ class ExpensePage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                '$amountPrefix$formattedAmount',
+                                formattedstartDate,
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w400,
-                                  color: amountColor,
                                 ),
                               ),
                               Text(
-                                expense.category,
+                                formattedendDate,
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: Colors.grey[600],
@@ -155,21 +138,21 @@ class ExpensePage extends StatelessWidget {
                 );
               },
             );
-          } else if (state is ExpenseError) {
+          } else if (state is TripError) {
             return Center(
               child: Text(state.message, style: const TextStyle(fontSize: 16)),
             );
           }
           return const Center(
             child: Text(
-              'No transaction data available',
+              'No trip data available',
               style: TextStyle(fontSize: 16),
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddExpenseBottomSheet(context),
+        onPressed: () => _showAddTripBottomSheet(context),
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
         shape: const CircleBorder(),
@@ -178,10 +161,7 @@ class ExpensePage extends StatelessWidget {
     );
   }
 
-  Future<void> _showDeleteDialog(
-    BuildContext context,
-    ExpenseEntity expense,
-  ) async {
+  Future<void> _showDeleteDialog(BuildContext context, TripEntity trip) async {
     final confirm = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -196,7 +176,7 @@ class ExpensePage extends StatelessWidget {
             children: [
               const Icon(Icons.warning_amber_rounded, color: Colors.red),
               const SizedBox(width: 8),
-              const Text('Delete Transaction'),
+              const Text('Delete Trip'),
             ],
           ),
           content: RichText(
@@ -207,7 +187,7 @@ class ExpensePage extends StatelessWidget {
               children: [
                 const TextSpan(text: 'Are you sure you want to delete '),
                 TextSpan(
-                  text: expense.title,
+                  text: trip.name,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
@@ -239,21 +219,17 @@ class ExpensePage extends StatelessWidget {
 
     if (confirm == true) {
       // ignore: use_build_context_synchronously
-      context.read<ExpenseBloc>().add(DeleteExpenseRequested(expense));
+      context.read<TripBloc>().add(DeleteTripRequested(trip));
     }
   }
 
-  void _showAddExpenseBottomSheet(
-    BuildContext context, {
-    ExpenseEntity? expense,
-  }) {
+  void _showAddTripBottomSheet(BuildContext context, {TripEntity? trip}) {
     final formKey = GlobalKey<FormState>();
 
-    final titleController = TextEditingController(text: expense?.title ?? '');
-    final amountController = TextEditingController(
-      text: expense != null ? expense.amount.toStringAsFixed(0) : '',
+    final nameController = TextEditingController(text: trip?.name ?? '');
+    final budgetController = TextEditingController(
+      text: trip != null ? trip.budget.toStringAsFixed(0) : '',
     );
-    String selectedCategory = expense?.category ?? 'General';
 
     showModalBottomSheet(
       context: context,
@@ -281,9 +257,7 @@ class ExpensePage extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              expense == null
-                                  ? 'Add New Transaction'
-                                  : 'Edit Transaction',
+                              trip == null ? 'Tambah Trip' : 'Edit Trip',
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -296,52 +270,31 @@ class ExpensePage extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 20),
-                        DropdownButtonFormField<String>(
-                          value: selectedCategory,
-                          onChanged: (value) {
-                            setState(() {
-                              selectedCategory = value!;
-                            });
-                          },
-                          items:
-                              ['General', 'Food', 'Transport', 'Shopping']
-                                  .map(
-                                    (c) => DropdownMenuItem(
-                                      value: c,
-                                      child: Text(c),
-                                    ),
-                                  )
-                                  .toList(),
-                          decoration: const InputDecoration(
-                            labelText: 'Category',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
+
                         TextFormField(
-                          controller: titleController,
+                          controller: nameController,
                           decoration: const InputDecoration(
-                            labelText: 'Title',
+                            labelText: 'Trip',
                             border: OutlineInputBorder(),
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'Title wajib diisi';
+                              return 'Beri nama trip anda!';
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
-                          controller: amountController,
+                          controller: budgetController,
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
-                            labelText: 'Amount',
+                            labelText: 'Anggaran',
                             border: OutlineInputBorder(),
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'Amount wajib diisi';
+                              return 'Tentukan anggaran untuk trip ini!';
                             }
                             if (double.tryParse(value) == null) {
                               return 'Masukkan angka yang valid';
@@ -373,28 +326,31 @@ class ExpensePage extends StatelessWidget {
                                 return;
                               }
 
-                              final double amount =
-                                  double.tryParse(amountController.text) ?? 0;
+                              final double budgetAmount =
+                                  double.tryParse(budgetController.text) ?? 0;
 
-                              final newExpense = ExpenseEntity(
+                              final newTrip = TripEntity(
                                 id:
-                                    expense?.id ??
+                                    trip?.id ??
                                     DateTime.now().millisecondsSinceEpoch
                                         .toString(),
-                                title: titleController.text,
-                                amount: amount,
-                                category: selectedCategory,
-                                createdAt: expense?.createdAt ?? DateTime.now(),
+                                name: nameController.text,
+                                budget: budgetAmount,
                                 userId: currentUser.uid,
+                                startDate: trip?.startDate ?? DateTime.now(),
+                                endDate: trip?.endDate ?? DateTime.now(),
+                                isFlexible: true,
+                                createdAt: trip?.createdAt ?? DateTime.now(),
+                                // updatedAt: DateTime.now(),
                               );
 
-                              if (expense == null) {
-                                context.read<ExpenseBloc>().add(
-                                  AddExpenseRequested(newExpense),
+                              if (trip == null) {
+                                context.read<TripBloc>().add(
+                                  AddTripRequested(newTrip),
                                 );
                               } else {
-                                context.read<ExpenseBloc>().add(
-                                  UpdateExpenseRequested(newExpense),
+                                context.read<TripBloc>().add(
+                                  UpdateTripRequested(newTrip),
                                 );
                               }
 
@@ -408,7 +364,7 @@ class ExpensePage extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: Text(expense == null ? 'SAVE' : 'UPDATE'),
+                            child: Text(trip == null ? 'SAVE' : 'UPDATE'),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -422,18 +378,5 @@ class ExpensePage extends StatelessWidget {
         );
       },
     );
-  }
-}
-
-IconData _getCategoryIcon(String category) {
-  switch (category) {
-    case 'Food':
-      return Icons.restaurant;
-    case 'Transport':
-      return Icons.directions_car;
-    case 'Shopping':
-      return Icons.shopping_bag;
-    default:
-      return Icons.category;
   }
 }

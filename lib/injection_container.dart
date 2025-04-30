@@ -30,6 +30,19 @@ import 'package:expensego/features/profile/domain/usecases/update_profile.dart';
 import 'package:expensego/features/profile/domain/usecases/change_password.dart';
 import 'package:expensego/features/profile/presentation/blocs/profile_bloc.dart';
 
+//Trip feature
+import 'package:expensego/features/trip/data/datasources/trip_local_data_source.dart';
+import 'package:expensego/features/trip/data/datasources/trip_local_data_source_impl.dart';
+import 'package:expensego/features/trip/data/datasources/trip_remote_data_source.dart';
+import 'package:expensego/features/trip/data/datasources/trip_remote_data_source_impl.dart';
+import 'package:expensego/features/trip/data/repositories/trip_repository_impl.dart';
+import 'package:expensego/features/trip/domain/repositories/trip_repository.dart';
+import 'package:expensego/features/trip/domain/usecases/add_trip.dart';
+import 'package:expensego/features/trip/domain/usecases/update_trip.dart';
+import 'package:expensego/features/trip/domain/usecases/delete_trip.dart';
+import 'package:expensego/features/trip/domain/usecases/get_trips.dart';
+import 'package:expensego/features/trip/presentation/blocs/trip_bloc.dart';
+
 //Expense feature
 import 'package:expensego/features/expense/data/datasources/expense_local_data_source.dart';
 import 'package:expensego/features/expense/data/datasources/expense_local_data_source_impl.dart';
@@ -56,8 +69,11 @@ Future<void> init() async {
   await Hive.initFlutter();
   sl.registerLazySingleton(() => Hive);
 
-  final box = await Hive.openBox('expenses');
-  sl.registerLazySingleton(() => box);
+  final tripBox = await Hive.openBox('trips');
+  sl.registerLazySingleton(() => tripBox);
+
+  // final expenseBox = await Hive.openBox('expenses');
+  // sl.registerLazySingleton(() => expenseBox);
 
   // Core Services
   sl.registerLazySingleton<AuthService>(
@@ -92,6 +108,41 @@ Future<void> init() async {
       signInWithGoogle: sl<SignInWithGoogle>(),
       getCurrentUser: sl<GetCurrentUser>(),
       authService: sl(),
+    ),
+  );
+
+  // ======================== TRIP FEATURE ========================
+  // Data Source
+  sl.registerLazySingleton<TripRemoteDataSource>(
+    () => TripRemoteDataSourceImpl(firestore: sl(), auth: sl()),
+  );
+
+  sl.registerLazySingleton<TripLocalDataSource>(
+    () => TripLocalDataSourceImpl(sl()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<TripRepository>(
+    () => TripRepositoryImpl(
+      remoteDataSource: sl(),
+      localDataSource: sl(),
+      networkInfo: sl(),
+    ),
+  );
+
+  // Usecase
+  sl.registerLazySingleton(() => AddTrip(sl()));
+  sl.registerLazySingleton(() => UpdateTrip(sl()));
+  sl.registerLazySingleton(() => DeleteTrip(sl()));
+  sl.registerLazySingleton(() => GetTrips(sl()));
+
+  // Bloc
+  sl.registerFactory(
+    () => TripBloc(
+      addTrip: sl(),
+      updateTrip: sl(),
+      deleteTrip: sl(),
+      getTrips: sl(),
     ),
   );
 
